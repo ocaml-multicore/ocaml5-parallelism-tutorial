@@ -10,10 +10,19 @@ end = struct
 
   let make () = Atomic.make []
 
-  let rec push r v = failwith "not implemented"
+  let rec push r v = 
+    let curr = Atomic.get r in
+    if Atomic.compare_and_set r curr (v::curr) then ()
+    else push r v
 
-  let rec pop r = failwith "not implemented"
-end
+  let rec pop r = 
+    let curr = Atomic.get r in
+    match curr with
+    | [] -> None
+    | h::t -> 
+      if Atomic.compare_and_set r curr t then Some h
+      else pop r
+  end
 
 let s = Atomic_stack.make ()
 

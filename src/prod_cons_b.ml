@@ -24,7 +24,16 @@ end = struct
     Condition.signal r.condition;
     Mutex.unlock r.mutex
 
-  let pop r = failwith "not implemented"
+  let pop r =
+    Mutex.lock r.mutex;
+    let rec loop () =
+      match r.contents with
+      | [] -> Condition.wait r.condition r.mutex; loop()
+      | h :: tail -> r.contents <- tail; h
+    in 
+    let head = loop () in
+    Mutex.unlock r.mutex;
+    head
 end
 
 let s = Atomic_stack.make ()
