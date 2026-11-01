@@ -17,11 +17,12 @@ let rec tak x y z =
 let rec tak_par p x y z =
   if x < 20 && y < 20
   then tak x y z
-  else
-    let a = T.async pool (fun _ -> tak_par p (x-1) y z) in
-    let b = T.async pool (fun _ -> tak_par p (y-1) z x) in
-    let c = T.async pool(fun _ -> tak_par p (z-1) x y) in
+  else if x > y then
+    let a = T.async p (fun _ -> tak_par p (x-1) y z) in
+    let b = T.async p (fun _ -> tak_par p (y-1) z x) in
+    let c = T.async p(fun _ -> tak_par p (z-1) x y) in
     tak (T.await p a) (T.await p b) (T.await p c)
+  else z
 
 let main () =
   let p = T.setup_pool ~num_domains:(num_domains - 1) () in
